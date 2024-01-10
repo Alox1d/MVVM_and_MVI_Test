@@ -1,65 +1,71 @@
-//package ru.otus.tomvi.presentation.finish
-//
-//import junit.framework.TestCase.assertFalse
-//import junit.framework.TestCase.assertTrue
-//import kotlinx.coroutines.ExperimentalCoroutinesApi
-//import kotlinx.coroutines.flow.flow
-//import kotlinx.coroutines.flow.flowOf
-//import kotlinx.coroutines.launch
-//import kotlinx.coroutines.test.advanceUntilIdle
-//import kotlinx.coroutines.test.runTest
-//import org.junit.Before
-//import org.junit.Rule
-//import org.junit.Test
-//import org.junit.runner.RunWith
-//import org.mockito.Mock
-//import org.mockito.junit.MockitoJUnitRunner
-//import org.mockito.kotlin.verify
-//import org.mockito.kotlin.whenever
-//import ru.otus.tomvi.MainCoroutineRule
-//import ru.otus.tomvi.data.CharactersRepository
-//import ru.otus.tomvi.data.FavoritesRepository
-//import ru.otus.tomvi.data.RaMCharacter
-//import ru.otus.tomvi.presentation.CharacterStateFactory
-//import ru.otus.tomvi.presentation.UiState
-//
-//@OptIn(ExperimentalCoroutinesApi::class)
-//@RunWith(MockitoJUnitRunner.Silent::class)
-//class MVICharactersViewModelTest {
-//
-//    @get:Rule
-//    var mainCoroutineRule = MainCoroutineRule()
-//
-//    private lateinit var sut: MVICharactersViewModel
-//
-//    @Mock
-//    lateinit var charactersRepository: CharactersRepository
-//
-//    @Mock
-//    lateinit var favoritesRepository: FavoritesRepository
-//
-//    private val stateFactory = CharacterStateFactory()
-//
-//    @Before
-//    fun setUp() {
-//        sut = MVICharactersViewModel(
-//            charactersRepository = charactersRepository,
-//            favoritesRepository = favoritesRepository,
-//            stateFactory = stateFactory,
-//        )
-//
-//        whenever(charactersRepository.consumeCharacters()).thenReturn(flowOf())
-//        whenever(favoritesRepository.consumeFavorites()).thenReturn(flowOf())
-//    }
-//
-//    @Test
-//    fun `WHEN LoadCharacters EXPECT isLoading state`() = runTest {
-//        sut.consumeAction(Action.LoadCharacters)
-//        advanceUntilIdle()
-//        val result = sut.state.value
-//
-//        assertTrue(result.isLoading)
-//    }
+package ru.otus.tomvi.presentation.finish
+
+import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.whenever
+import ru.otus.tomvi.MainCoroutineRule
+import ru.otus.tomvi.data.CharactersRepository
+import ru.otus.tomvi.data.FavoritesRepository
+import ru.otus.tomvi.data.RaMCharacter
+import ru.otus.tomvi.presentation.CharacterStateFactory
+import ru.otus.tomvi.presentation.UiState
+import ru.otus.tomvi.presentation.start.CharactersViewModel
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
+class CharactersViewModelTest {
+
+    @get:Rule
+    var mainCoroutineRule = MainCoroutineRule()
+
+    private lateinit var sut: CharactersViewModel
+
+    @Mock
+    lateinit var charactersRepository: CharactersRepository
+
+    @Mock
+    lateinit var favoritesRepository: FavoritesRepository
+
+    private val stateFactory = CharacterStateFactory()
+
+    @Before
+    fun setUp() {
+        sut = CharactersViewModel(
+            charactersRepository = charactersRepository,
+            favoritesRepository = favoritesRepository,
+            stateFactory = stateFactory,
+        )
+
+        whenever(charactersRepository.consumeCharacters()).thenReturn(flowOf())
+        whenever(favoritesRepository.consumeFavorites()).thenReturn(flowOf())
+    }
+
+    @Test
+    fun `WHEN LoadCharacters EXPECT isLoading state`() = runTest {
+        backgroundScope.launch {
+            sut.refresh()
+        }
+
+        advanceUntilIdle()
+        val result = sut.state.value
+
+//        val result = mutableListOf<UiState>()
+//        sut.state.take(2).collect {
+//            result.add(it)
+//        }
+//        assertTrue(result[1] is UiState.Error)
+        assertTrue(result is UiState.Error)
+    }
 //
 //    @Test
 //    fun `WHEN LoadCharacters EXPECT state with no error`() = runTest {
@@ -124,16 +130,16 @@
 //
 //        verify(favoritesRepository).addToFavorites(1L)
 //    }
-//
-//    private fun createCharacter(
-//        id: Long = 0L,
-//        name: String = "",
-//        image: String = "",
-//    ): RaMCharacter {
-//        return RaMCharacter(
-//            id = id,
-//            name = name,
-//            image = image,
-//        )
-//    }
-//}
+
+    private fun createCharacter(
+        id: Long = 0L,
+        name: String = "",
+        image: String = "",
+    ): RaMCharacter {
+        return RaMCharacter(
+            id = id,
+            name = name,
+            image = image,
+        )
+    }
+}

@@ -1,6 +1,8 @@
 package ru.otus.tomvi.presentation.start
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +13,7 @@ import androidx.lifecycle.Lifecycle.State
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.otus.tomvi.databinding.FragmentCharactersBinding
 import ru.otus.tomvi.getServiceLocator
@@ -23,7 +26,8 @@ class CharactersFragment : Fragment() {
     private var _binding: FragmentCharactersBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: CharactersViewModel by viewModels(factoryProducer = { getServiceLocator().provideViewModelFactory() })
+    private val viewModel: CharactersViewModel by viewModels(
+        factoryProducer = { getServiceLocator().provideViewModelFactory() })
 
     private val adapter = CharactersAdapter(FavoriteClickListener())
 
@@ -45,6 +49,22 @@ class CharactersFragment : Fragment() {
         binding.uiSwipeRefreshLayout.setOnRefreshListener {
             viewModel.refresh()
         }
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) =
+                Unit
+
+            override fun onTextChanged(
+                searchName: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int
+            ) {
+                viewModel.refresh(searchName.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) = Unit
+
+        })
     }
 
     override fun onDestroyView() {
@@ -55,21 +75,30 @@ class CharactersFragment : Fragment() {
     private fun subscribeUI() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(State.STARTED) {
-                launch {
-                    viewModel.state.collect { state: UiState ->
-                        when {
-                            state.isLoading -> showLoading()
-                            else -> {
-                                adapter.submitList(state.characters)
-                                showList()
-                            }
+
+                viewModel.state.collectLatest { state: UiState ->
+                    when (state) {
+                        UiState.Loading -> showLoading()
+
+                        is UiState.Success -> {
+                            adapter.submitList(state.characters)
+                            showList()
                         }
 
-                        if (state.hasError) {
-                            showError()
-                            viewModel.errorHasShown()
-                        }
+                        is UiState.Error -> showError()
                     }
+//                    when {
+//                        state.isLoading -> showLoading()
+//                        else -> {
+//                            adapter.submitList(state.characters)
+//                            showList()
+//                        }
+//                    }
+
+//                    if (state.hasError) {
+//                        showError()
+//                        viewModel.errorHasShown()
+//                    }
                 }
             }
         }
@@ -86,6 +115,7 @@ class CharactersFragment : Fragment() {
     }
 
     private fun showError() {
+        hideAll()
         Toast.makeText(
             requireContext(), "Error wile loading data", Toast.LENGTH_SHORT
         ).show()

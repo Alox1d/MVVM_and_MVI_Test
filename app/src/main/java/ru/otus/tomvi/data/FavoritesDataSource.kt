@@ -4,10 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -15,6 +13,9 @@ import kotlinx.serialization.json.Json
 class FavoritesDataSource(
     private val dataStore: DataStore<Preferences>,
 ) {
+
+    private val preferencesKey = stringPreferencesKey(KEY)
+
     fun consumeFavoriteIds(): Flow<List<Long>> = dataStore.data
         .map(::mapFromPrefs)
 
@@ -40,7 +41,6 @@ class FavoritesDataSource(
             ?.let { Json.decodeFromString(it) }
             ?: listOf()
 
-    private val preferencesKey = stringPreferencesKey(KEY)
 
     private companion object {
         const val KEY = "key"

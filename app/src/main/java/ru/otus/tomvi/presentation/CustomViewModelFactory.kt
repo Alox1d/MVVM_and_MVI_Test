@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import ru.otus.tomvi.data.CharactersRepository
 import ru.otus.tomvi.data.FavoritesRepository
-import ru.otus.tomvi.presentation.finish.MVICharactersViewModel
 import ru.otus.tomvi.presentation.start.CharactersViewModel
 
 class CustomViewModelFactory(
@@ -24,14 +23,14 @@ class CustomViewModelFactory(
                     stateFactory = characterStateFactory,
                 ) as T
             }
-            modelClass.isAssignableFrom(MVICharactersViewModel::class.java) -> {
-                @Suppress("UNCHECKED_CAST")
-                return MVICharactersViewModel(
-                    charactersRepository = charactersRepository,
-                    favoritesRepository = favoritesRepository,
-                    stateFactory = characterStateFactory,
-                ) as T
-            }
+//            modelClass.isAssignableFrom(MVICharactersViewModel::class.java) -> {
+//                @Suppress("UNCHECKED_CAST")
+//                return MVICharactersViewModel(
+//                    charactersRepository = charactersRepository,
+//                    favoritesRepository = favoritesRepository,
+//                    stateFactory = characterStateFactory,
+//                ) as T
+//            }
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
